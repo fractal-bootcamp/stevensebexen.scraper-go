@@ -1,60 +1,40 @@
 package main
 
 import (
+	"bytes"
 	"fmt"
+	"io"
 	"net/http"
-	"strings"
+	"os"
 
 	"golang.org/x/net/html"
 )
 
-const url_to_scrape string = "http://example.org"
-
-func extract_anchors(n *html.Node, traverse_depth uint, host string, path string) {
-	if traverse_depth <= 0 {
-		return
-	}
-
-	if n.Type == html.ElementNode && n.Data == "a" {
-		for _, v := range n.Attr {
-			if v.Key == "href" {
-				url := v.Val
-				if !strings.HasPrefix(v.Val, "http") {
-					url = host + v.Val
-				}
-				fmt.Printf("%s\n", url)
-				scrape_page(url, traverse_depth-1)
-			}
-		}
-	}
-
-	for c := n.FirstChild; c != nil; c = c.NextSibling {
-		extract_anchors(c, traverse_depth, host, path)
-	}
-}
-
-func scrape_page(url string, traverse_depth uint) {
-	full_url := url
-	if !strings.HasPrefix(full_url, "http") {
-		full_url = "http://" + full_url
-	}
-	response, err := http.Get(full_url)
-	if err != nil {
-		fmt.Printf("%s\n", err)
-		return
-	}
-
-	if response.StatusCode == 200 {
-		document, err := html.Parse(response.Body)
-		if err != nil {
-			fmt.Printf("%s", err)
-			return
-		}
-		host, path := response.Request.URL.Host, response.Request.URL.Path
-		extract_anchors(document, traverse_depth, host, path)
-	}
-}
-
 func main() {
-	scrape_page(url_to_scrape, 2)
+	if len(os.Args) <= 1 {
+		println("Please provide a url.")
+		os.Exit(1)
+	}
+
+	url := os.Args[1]
+	res, err := http.Get(url)
+	if err != nil {
+		fmt.Printf("Unable to fetch url %s\n", url)
+		os.Exit(1)
+	}
+	defer res.Body.Close()
+
+	buffer, err := io.ReadAll(res.Body)
+	if err != nil {
+		fmt.Printf("Error reading content: %s\n", err)
+		os.Exit(1)
+	}
+	fmt.Printf("Content length: %d\n", len(buffer))
+
+	doc, err := html.Parse(bytes.NewReader(buffer))
+	if err != nil {
+		fmt.Printf("Error while parsing: %s\n", err)
+		os.Exit(1)
+	}
+	fmt.Printf("%#v\n", doc.FirstChild)
 }
