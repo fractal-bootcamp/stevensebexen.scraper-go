@@ -54,5 +54,16 @@ func main() {
 	url := os.Args[1]
 	doc := fetchHtml(url)
 
+	f, err := os.Create("render.txt")
+	if err != nil {
+		fmt.Printf("Error creating file: %s", err)
+		return
+	}
+
+	err = html.Render(f, doc)
+	if err != nil {
+		fmt.Printf("Error rendering HTML: %s", err)
+		return
+	}
 	fmt.Printf("%#v\n", doc.FirstChild)
 }
