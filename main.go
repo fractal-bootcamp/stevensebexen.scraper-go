@@ -9,8 +9,12 @@ import (
 	"golang.org/x/net/html"
 )
 
-func getContentLength(r io.ReadCloser) (int, error) {
-	c, err := io.ReadAll(r)
+func getContentLength(res *http.Response) (int, error) {
+	if res.ContentLength != -1 {
+		return int(res.ContentLength), nil
+	}
+	rc := io.NopCloser(res.Body)
+	c, err := io.ReadAll(rc)
 	if err != nil {
 		return -1, err
 	}
@@ -31,8 +35,8 @@ func main() {
 	}
 	defer res.Body.Close()
 
-	contentLength, err := getContentLength(res.Body)
-	if contentLength == -1 {
+	contentLength, err := getContentLength(res)
+	if err != nil {
 		fmt.Printf("Error reading content: %s\n", err)
 		os.Exit(1)
 	}
