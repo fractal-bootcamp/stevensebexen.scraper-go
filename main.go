@@ -1,49 +1,11 @@
 package main
 
 import (
-	"bytes"
 	"fmt"
 	"io"
-	"net/http"
 	"os"
-
-	"golang.org/x/net/html"
+	"strings"
 )
-
-func fetchHtml(url string) *html.Node {
-	// HTTP Get
-	res, err := http.Get(url)
-	if err != nil {
-		fmt.Printf("Unable to fetch url %s\n", url)
-		return nil
-	}
-	defer res.Body.Close()
-
-	var doc *html.Node
-
-	// Use Content-Length if available, otherwise use a buffer to determine length.
-	// Then, parse the HTML.
-	if res.ContentLength != -1 {
-		fmt.Printf("Content length: %d\n", res.ContentLength)
-		doc, err = html.Parse(res.Body)
-		if err != nil {
-			fmt.Printf("Error parsing HTML: %s", err)
-		}
-	} else {
-		buffer, err := io.ReadAll(res.Body)
-		if err != nil {
-			fmt.Printf("Error reading content: %s\n", err)
-			return nil
-		}
-		fmt.Printf("Content length: %d\n", len(buffer))
-		doc, err = html.Parse(bytes.NewBuffer(buffer))
-		if err != nil {
-			fmt.Printf("Error parsing HTML: %s", err)
-		}
-	}
-
-	return doc
-}
 
 func main() {
 	if len(os.Args) <= 1 {
@@ -51,19 +13,17 @@ func main() {
 		os.Exit(1)
 	}
 
-	url := os.Args[1]
+	url := httpify(os.Args[1])
 	doc := fetchHtml(url)
+	var links []string
 
-	f, err := os.Create("render.txt")
+	renderHtml(doc, "render.txt")
+	extractLinks(&links, doc, 2, 10)
+
+	s := strings.Join(links, "\n")
+	w, err := os.Create("links.txt")
 	if err != nil {
 		fmt.Printf("Error creating file: %s", err)
-		return
 	}
-
-	err = html.Render(f, doc)
-	if err != nil {
-		fmt.Printf("Error rendering HTML: %s", err)
-		return
-	}
-	fmt.Printf("%#v\n", doc.FirstChild)
+	io.WriteString(w, s)
 }
