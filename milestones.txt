@@ -1,5 +1,6 @@
 [x]  Accept a URL as command line input an fetch the HTML content.
 [x]  Log the size of fetched HTML.
+[ ]  Render the HTML to a new file.
 [ ]  Remove the following elements:
   [ ] script
   [ ] .vector-header
