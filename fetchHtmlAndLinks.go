@@ -5,7 +5,7 @@ import (
 )
 
 type DocWithLinks struct {
-	doc   *html.Node
+	node  *html.Node
 	url   string
 	links []string
 }
