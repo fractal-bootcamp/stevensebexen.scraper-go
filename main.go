@@ -1,10 +1,7 @@
 package main
 
 import (
-	"fmt"
-	"io"
 	"os"
-	"strings"
 )
 
 func main() {
@@ -14,16 +11,11 @@ func main() {
 	}
 
 	url := httpify(os.Args[1])
-	doc := fetchHtml(url)
+	doc, host := fetchHtml(url)
 	var links []string
 
+	extractLinks(&links, doc, host, 10)
 	renderHtml(doc, "render.txt")
-	extractLinks(&links, doc, 2, 10)
+	renderLinks(links, "links.txt")
 
-	s := strings.Join(links, "\n")
-	w, err := os.Create("links.txt")
-	if err != nil {
-		fmt.Printf("Error creating file: %s", err)
-	}
-	io.WriteString(w, s)
 }
