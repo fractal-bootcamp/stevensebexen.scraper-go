@@ -2,6 +2,7 @@ package main
 
 import (
 	"os"
+	"path"
 )
 
 func main() {
@@ -14,8 +15,9 @@ func main() {
 	doc, host := fetchHtml(url)
 	var links []string
 
+	os.Mkdir("out", 0777)
 	extractLinks(&links, doc, host, 10)
-	renderHtml(doc, "render.txt")
-	renderLinks(links, "links.txt")
+	renderHtml(doc, path.Join("out", "render.txt"))
+	renderLinks(links, path.Join("out", "links.txt"))
 
 }

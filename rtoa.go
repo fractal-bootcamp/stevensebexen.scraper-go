@@ -7,6 +7,10 @@ func rtoa(url string, host string) string {
 	if strings.HasPrefix(url, "http") {
 		return url
 	} else {
-		return httpify(host + url)
+		if strings.HasPrefix(url, "/") {
+			return httpify(host + url)
+		} else {
+			return httpify(host + "/" + url)
+		}
 	}
 }
