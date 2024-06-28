@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bytes"
 	"fmt"
 	"io"
 	"net/http"
@@ -8,18 +9,6 @@ import (
 
 	"golang.org/x/net/html"
 )
-
-func getContentLength(res *http.Response) (int, error) {
-	if res.ContentLength != -1 {
-		return int(res.ContentLength), nil
-	}
-	rc := io.NopCloser(res.Body)
-	c, err := io.ReadAll(rc)
-	if err != nil {
-		return -1, err
-	}
-	return len(c), nil
-}
 
 func main() {
 	if len(os.Args) <= 1 {
@@ -35,16 +24,17 @@ func main() {
 	}
 	defer res.Body.Close()
 
-	contentLength, err := getContentLength(res)
+	buffer, err := io.ReadAll(res.Body)
 	if err != nil {
 		fmt.Printf("Error reading content: %s\n", err)
 		os.Exit(1)
 	}
-	fmt.Printf("Content length: %d\n", contentLength)
+	fmt.Printf("Content length: %d\n", len(buffer))
 
-	_, err = html.Parse(res.Body)
+	doc, err := html.Parse(bytes.NewReader(buffer))
 	if err != nil {
 		fmt.Printf("Error while parsing: %s\n", err)
 		os.Exit(1)
 	}
+	fmt.Printf("%#v\n", doc.FirstChild)
 }
