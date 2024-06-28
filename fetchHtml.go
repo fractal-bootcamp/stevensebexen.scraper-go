@@ -9,12 +9,13 @@ import (
 	"golang.org/x/net/html"
 )
 
-func fetchHtml(url string) *html.Node {
+// Returns the root node of document and the hostname.
+func fetchHtml(url string) (*html.Node, string) {
 	// HTTP Get
 	res, err := http.Get(url)
 	if err != nil {
 		fmt.Printf("Unable to fetch url %s\n", url)
-		return nil
+		return nil, ""
 	}
 	defer res.Body.Close()
 
@@ -23,7 +24,7 @@ func fetchHtml(url string) *html.Node {
 	// Use Content-Length if available, otherwise use a buffer to determine length.
 	// Then, parse the HTML.
 	if res.ContentLength != -1 {
-		fmt.Printf("Content length: %d\n", res.ContentLength)
+		fmt.Printf("%s: %d bytes.\n", url, res.ContentLength)
 		doc, err = html.Parse(res.Body)
 		if err != nil {
 			fmt.Printf("Error parsing HTML: %s", err)
@@ -32,14 +33,15 @@ func fetchHtml(url string) *html.Node {
 		buffer, err := io.ReadAll(res.Body)
 		if err != nil {
 			fmt.Printf("Error reading content: %s\n", err)
-			return nil
+			return nil, ""
 		}
-		fmt.Printf("Content length: %d\n", len(buffer))
+		fmt.Printf("%s: %d bytes.\n", url, len(buffer))
 		doc, err = html.Parse(bytes.NewBuffer(buffer))
 		if err != nil {
 			fmt.Printf("Error parsing HTML: %s", err)
+			return nil, ""
 		}
 	}
 
-	return doc
+	return doc, res.Request.URL.Host
 }

@@ -4,31 +4,39 @@ import (
 	"golang.org/x/net/html"
 )
 
-func extractLinks(links *[]string, n *html.Node, depth int, maxLinks int) bool {
-	hasLink := false
-	numLinks := 0
+func extractLinksClosure(host string, linksPerPage int) func(*html.Node) []string {
+	var links []string
 
-	// See if current node has a link
-	if n.Type == html.ElementNode && n.Data == "a" {
-		for _, ele := range n.Attr {
-			if ele.Key == "href" {
-				link := httpify(ele.Val)
-				*links = append(*links, link)
-				hasLink = true
-				break
+	var f func(*html.Node) []string
+	f = func(n *html.Node) []string {
+		if len(links) >= linksPerPage {
+			return links
+		}
+		// See if current node has a link.
+		if n.Type == html.ElementNode && n.Data == "a" {
+			for _, ele := range n.Attr {
+				if ele.Key == "href" {
+					// Relative links will be printed as absolute ones.
+					link := rtoa(ele.Val, host)
+					links = append(links, link)
+					break
+				}
 			}
 		}
-	}
 
-	// Run extractLinks recursively on the first child and its siblings
-	for c := n.FirstChild; c != nil; c = c.NextSibling {
-		if extractLinks(links, c, depth-1, maxLinks) {
-			numLinks++
-			if numLinks >= maxLinks {
-				break
-			}
+		// Run extractLinks recursively on the first child and its siblings.
+		for c := n.FirstChild; c != nil; c = c.NextSibling {
+			f(c)
 		}
+
+		return links
 	}
 
-	return hasLink
+	return func(n *html.Node) []string {
+		return f(n)
+	}
+}
+
+func extractLinks(n *html.Node, host string, linksPerPage int) []string {
+	return extractLinksClosure(host, linksPerPage)(n)
 }
