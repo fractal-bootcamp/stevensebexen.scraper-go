@@ -1,6 +1,7 @@
 [x]  Accept a URL as command line input an fetch the HTML content.
 [x]  Log the size of fetched HTML.
-[ ]  Render the HTML to a new file.
+[x]  Render the HTML to a new file.
+[ ]  Extract links up to specified depth (--depth command line)
 [ ]  Remove the following elements:
   [ ] script
   [ ] .vector-header
@@ -8,4 +9,3 @@
   [ ] #p-lang-btn
   [ ] .infobox
   [ ] link (where rel=="stylesheet")
-[ ]  Traverse links up to specified depth (--depth command line)
