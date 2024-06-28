@@ -1,24 +1,25 @@
 package main
 
 import (
+	"fmt"
 	"os"
 	"path"
 )
 
 func main() {
-	if len(os.Args) <= 1 {
-		println("Please provide a url.")
+	url, depth, linksPerPage, ok := parseArgs(os.Args)
+	if !ok {
 		os.Exit(1)
 	}
 
-	url := httpify(os.Args[1])
-	doc, host := fetchHtml(url)
-	var links []string
-
-	extractLinks(&links, doc, host, 10)
+	var docs []DocWithLinks
+	fetchHtmlAndLinks(url, &docs, depth, linksPerPage)
 
 	mkOutDir()
-	renderHtml(doc, path.Join("out", "render.txt"))
+	var links []string
+	for i, doc := range docs {
+		renderHtml(doc.doc, doc.url, path.Join("out", fmt.Sprintf("%d.html", i)))
+		links = append(links, doc.links...)
+	}
 	renderLinks(links, path.Join("out", "links.txt"))
-
 }

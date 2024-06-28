@@ -24,7 +24,7 @@ func fetchHtml(url string) (*html.Node, string) {
 	// Use Content-Length if available, otherwise use a buffer to determine length.
 	// Then, parse the HTML.
 	if res.ContentLength != -1 {
-		fmt.Printf("Content length: %d\n", res.ContentLength)
+		fmt.Printf("%s: %d bytes.\n", url, res.ContentLength)
 		doc, err = html.Parse(res.Body)
 		if err != nil {
 			fmt.Printf("Error parsing HTML: %s", err)
@@ -35,7 +35,7 @@ func fetchHtml(url string) (*html.Node, string) {
 			fmt.Printf("Error reading content: %s\n", err)
 			return nil, ""
 		}
-		fmt.Printf("Content length: %d\n", len(buffer))
+		fmt.Printf("%s: %d bytes.\n", url, len(buffer))
 		doc, err = html.Parse(bytes.NewBuffer(buffer))
 		if err != nil {
 			fmt.Printf("Error parsing HTML: %s", err)

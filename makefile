@@ -3,3 +3,6 @@ build:
 
 clean:
 	rm ./bin/*
+
+clean-out:
+	rm ./out/*

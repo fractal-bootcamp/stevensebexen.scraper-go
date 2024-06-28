@@ -4,13 +4,13 @@ import (
 	"golang.org/x/net/html"
 )
 
-func extractLinksClosure(links *[]string, host string, linksPerPage int) func(*html.Node) {
-	numLinks := 0
+func extractLinksClosure(host string, linksPerPage int) func(*html.Node) []string {
+	var links []string
 
-	var f func(*html.Node)
-	f = func(n *html.Node) {
-		if numLinks >= linksPerPage {
-			return
+	var f func(*html.Node) []string
+	f = func(n *html.Node) []string {
+		if len(links) >= linksPerPage {
+			return links
 		}
 		// See if current node has a link.
 		if n.Type == html.ElementNode && n.Data == "a" {
@@ -18,8 +18,7 @@ func extractLinksClosure(links *[]string, host string, linksPerPage int) func(*h
 				if ele.Key == "href" {
 					// Relative links will be printed as absolute ones.
 					link := rtoa(ele.Val, host)
-					*links = append(*links, link)
-					numLinks++
+					links = append(links, link)
 					break
 				}
 			}
@@ -29,13 +28,15 @@ func extractLinksClosure(links *[]string, host string, linksPerPage int) func(*h
 		for c := n.FirstChild; c != nil; c = c.NextSibling {
 			f(c)
 		}
+
+		return links
 	}
 
-	return func(n *html.Node) {
-		f(n)
+	return func(n *html.Node) []string {
+		return f(n)
 	}
 }
 
-func extractLinks(links *[]string, n *html.Node, host string, linksPerPage int) {
-	extractLinksClosure(links, host, linksPerPage)(n)
+func extractLinks(n *html.Node, host string, linksPerPage int) []string {
+	return extractLinksClosure(host, linksPerPage)(n)
 }
