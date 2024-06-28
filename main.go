@@ -12,18 +12,25 @@ func main() {
 		os.Exit(1)
 	}
 
+	// Recursively fetch pages and their links.
 	var docs []DocWithLinks
 	fetchHtmlAndLinks(url, &docs, depth, linksPerPage)
 
+	// Filter out unwanted nodes.
 	for _, doc := range docs {
 		cleanHtml(doc.node)
 	}
 
+	// Render out each doc and a list of links containing only unique links.
 	mkOutDir()
-	var links []string
+	linksMap := make(map[string]bool)
 	for i, doc := range docs {
 		renderHtml(doc.node, doc.url, path.Join("out", fmt.Sprintf("%d.html", i)))
-		links = append(links, doc.links...)
+		linksMap[doc.url] = true
+	}
+	links := make([]string, 0, len(linksMap))
+	for link := range linksMap {
+		links = append(links, link)
 	}
 	renderLinks(links, path.Join("out", "links.txt"))
 }
