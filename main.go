@@ -26,7 +26,9 @@ func main() {
 	linksMap := make(map[string]bool)
 	for i, doc := range docs {
 		renderHtml(doc.node, doc.url, path.Join("out", fmt.Sprintf("%d.html", i)))
-		linksMap[doc.url] = true
+		for _, link := range doc.links {
+			linksMap[link] = true
+		}
 	}
 	links := make([]string, 0, len(linksMap))
 	for link := range linksMap {
